@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Đăng Nhập / Đăng Ký VIP</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(-45deg, #6B73FF, #000DFF, #FF6B6B, #FFD93D);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    @keyframes gradientBG {
+        0% {background-position:0% 50%;}
+        50% {background-position:100% 50%;}
+        100% {background-position:0% 50%;}
+    }
+    .container {
+        background: white;
+        padding: 20px 28px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        width: 420px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .time-block {
+        text-align: left;
+    }
+    .time {
+        font-weight: bold;
+        font-size: 18px;
+        color: #333;
+    }
+    .date {
+        font-size: 12px;
+        color: #666;
+    }
+    .weather-block {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .weather-icon {
+        width: 42px;
+        height: 42px;
+        background: transparent;
+    }
+    .weather-desc {
+        font-size: 13px;
+        color: #333;
+        text-align: right;
+    }
+
+    h2 {
+        text-align: center;
+        margin: 6px 0 12px 0;
+        color: #333;
+    }
+    .welcome {
+        text-align: center;
+        margin-bottom: 12px;
+        color: #333;
+    }
+    input, .city-input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+    .input-wrap { position: relative; }
+    .show-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #555;
+        font-size: 13px;
+        user-select: none;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 10px;
+        background: #6B73FF;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    button:hover { background: #000DFF; }
+    .toggle {
+        text-align: center;
+        margin-top: 12px;
+        color: #555;
+        cursor: pointer;
+        user-select: none;
+    }
+    .error, .success {
+        font-size: 14px;
+        text-align: center;
+        margin-top: 6px;
+    }
+    .error { color: red; }
+    .success { color: green; }
+    .strength {
+        height: 8px;
+        border-radius: 8px;
+        background: #eee;
+        overflow: hidden;
+        margin-top: 6px;
+    }
+    .strength > i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: red;
+        transition: width 0.2s ease, background 0.2s ease;
+    }
+    .strength-text {
+        font-size: 12px;
+        color: #666;
+        margin-top: 6px;
+        text-align: left;
+    }
+    .logout-btn {
+        margin-top: 10px;
+        background: #ff6b6b;
+    }
+    .small-note {
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        margin-top: 6px;
+    }
+    .city-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .city-row .city-input {
+        flex: 1;
+        margin: 0;
+    }
+    .city-row button {
+        width: auto;
+        padding: 10px 12px;
+        border-radius: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container" id="authContainer">
+    <div class="status-bar">
+        <div class="time-block">
+            <div id="timeText" class="time">--:--:--</div>
+            <div id="dateText" class="date">---</div>
+        </div>
+        <div class="weather-block">
+            <img id="weatherIcon" class="weather-icon" src="" alt="" style="display:none">
+            <div id="weatherText" class="weather-desc">Đang tải thời tiết...</div>
+        </div>
+    </div>
+
+    <h2 id="form-title">Đăng Nhập</h2>
+    <div id="message"></div>
+
+    <div id="formArea">
+        <input type="text" id="username" placeholder="Tên đăng nhập">
+        <div class="input-wrap">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <div class="show-password" id="togglePassword">Hiện</div>
+        </div>
+
+        <div id="confirmWrap" style="display:none;">
+            <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu">
+        </div>
+
+        <div class="strength" id="strengthBar" style="display:none;"><i></i></div>
+        <div class="strength-text" id="strengthText" style="display:none;"></div>
+
+        <div class="city-row" title="Thay đổi vị trí thời tiết (tùy chọn)">
+            <input class="city-input" id="cityInput" placeholder="Nhập thành phố (ví dụ: Hanoi)" />
+            <button id="cityBtn" type="button">Cập nhật</button>
+        </div>
+
+        <button id="submitBtn">Đăng Nhập</button>
+        <div class="toggle" id="toggleForm">Chưa có tài khoản? Đăng ký</div>
+        <div class="small-note">TLGB TEAM</div>
+    </div>
+
+    <div id="welcomeArea" style="display:none;">
+        <div class="welcome" id="welcomeText"></div>
+        <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
+    </div>
+</div>
+
+<script>
+/* ====== CẤU HÌNH THỜI TIẾT ======
+   Đăng ký API key tại https://openweathermap.org/ -> dán vào biến API_KEY
+*/
+// Thay bằng API key OpenWeatherMap của bạn (không lưu công khai)
+const API_KEY = '7ptGOKPlj6TjPwW0jTOmPgF9LafiBI0x';
+let currentCity = 'Hanoi'; // mặc định nếu không dùng geolocation
+let weatherUpdateInterval = 10 * 60 * 1000; // 10 phút
+
+/* ====== Time & Date ====== */
+const timeText = document.getElementById('timeText');
+const dateText = document.getElementById('dateText');
+function updateTime(){
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    timeText.textContent = `${hh}:${mm}:${ss}`;
+    dateText.textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+/* ====== Weather ====== */
+const weatherText = document.getElementById('weatherText');
+const weatherIcon = document.getElementById('weatherIcon');
+const cityInput = document.getElementById('cityInput');
+const cityBtn = document.getElementById('cityBtn');
+
+cityBtn.addEventListener('click', () => {
+    const v = cityInput.value.trim();
+    if(v) {
+        currentCity = v;
+        fetchWeatherByCity(v);
+    }
+});
+
+// Lấy weather theo tọa độ (nếu có) hoặc theo tên thành phố
+async function fetchWeatherByCoords(lat, lon){
+    if(!API_KEY || API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY'){
+        weatherText.textContent = 'Chưa có API key thời tiết.';
+        weatherIcon.style.display = 'none';
+        return;
+    }
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=vi&appid=${API_KEY}`;
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('Lỗi API');
+        const data = await res.json();
+        renderWeather(data);
+    } catch(e){
+        console.error(e);
+        weatherText.textContent = 'Không thể tải thời tiết';
+        weatherIcon.style.display = 'none';
+    }
+}
+
+async function fetchWeatherByCity(city){
+    if(!API_KEY || API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY'){
+        weatherText.textContent = 'Chưa có API key thời tiết.';
+        weatherIcon.style.display = 'none';
+        return;
+    }
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&lang=vi&appid=${API_KEY}`;
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('Không tìm thấy thành phố');
+        const data = await res.json();
+        renderWeather(data);
+    } catch(e){
+        console.error(e);
+        weatherText.textContent = 'Không tìm thấy thời tiết cho vị trí';
+        weatherIcon.style.display = 'none';
+    }
+}
+
+function renderWeather(data){
+    if(!data || !data.weather || !data.main) {
+        weatherText.textContent = 'Dữ liệu thời tiết không hợp lệ';
+        weatherIcon.style.display = 'none';
+        return;
+    }
+    const temp = Math.round(data.main.temp);
+    const desc = data.weather[0].description || '';
+    const city = data.name || '';
+    const icon = data.weather[0].icon;
+    weatherText.textContent = `${city}: ${temp}°C · ${desc}`;
+    weatherIcon.src = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+    weatherIcon.alt = desc;
+    weatherIcon.style.display = 'block';
+}
+
+/* Thử lấy theo geolocation, nếu không thì dùng tên thành phố mặc định */
+function updateWeather(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(pos => {
+            fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
+        }, err => {
+            // fallback sang tìm bằng tên
+            fetchWeatherByCity(currentCity);
+        }, { timeout: 5000 });
+    } else {
+        fetchWeatherByCity(currentCity);
+    }
+}
+updateWeather();
+setInterval(updateWeather, weatherUpdateInterval);
+
+/* ====== Phần đăng nhập/đăng ký (giữ nguyên) ====== */
+const formTitle = document.getElementById('form-title');
+const toggleForm = document.getElementById('toggleForm');
+const submitBtn = document.getElementById('submitBtn');
+const messageDiv = document.getElementById('message');
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+const confirmWrap = document.getElementById('confirmWrap');
+const confirmInput = document.getElementById('confirmPassword');
+const strengthBar = document.getElementById('strengthBar').firstElementChild;
+const strengthText = document.getElementById('strengthText');
+const strengthWrap = document.getElementById('strengthBar');
+const formArea = document.getElementById('formArea');
+const welcomeArea = document.getElementById('welcomeArea');
+const welcomeText = document.getElementById('welcomeText');
+const logoutBtn = document.getElementById('logoutBtn');
+
+let isLogin = true;
+
+// Chuyển giữa đăng nhập và đăng ký
+toggleForm.addEventListener('click', () => {
+    isLogin = !isLogin;
+    formTitle.textContent = isLogin ? 'Đăng Nhập' : 'Đăng Ký';
+    submitBtn.textContent = isLogin ? 'Đăng Nhập' : 'Đăng Ký';
+    toggleForm.textContent = isLogin ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập';
+    messageDiv.textContent = '';
+    // show/hide registration fields
+    confirmWrap.style.display = isLogin ? 'none' : 'block';
+    strengthWrap.style.display = isLogin ? 'none' : 'block';
+    strengthText.style.display = isLogin ? 'none' : 'block';
+});
+
+// Hiện/ẩn mật khẩu
+togglePassword.addEventListener('click', () => {
+    if(passwordInput.type === 'password'){
+        passwordInput.type = 'text';
+        togglePassword.textContent = 'Ẩn';
+    } else {
+        passwordInput.type = 'password';
+        togglePassword.textContent = 'Hiện';
+    }
+});
+
+// Tính điểm sức mạnh mật khẩu
+function passwordScore(pwd){
+    let score = 0;
+    if(pwd.length >= 6) score += 1;
+    if(/[A-Z]/.test(pwd)) score += 1;
+    if(/[a-z]/.test(pwd)) score += 1;
+    if(/[0-9]/.test(pwd)) score += 1;
+    if(/[\W_]/.test(pwd)) score += 1;
+    if(pwd.length >= 12) score += 1;
+    return score; // 0..6
+}
+
+function updateStrength(pwd){
+    const score = passwordScore(pwd);
+    const pct = Math.min(100, Math.round((score/6)*100));
+    strengthBar.style.width = pct + '%';
+    if(pct < 34) { strengthBar.style.background = 'red'; strengthText.textContent = 'Yếu'; }
+    else if(pct < 67) { strengthBar.style.background = 'orange'; strengthText.textContent = 'Trung bình'; }
+    else { strengthBar.style.background = '#06c270'; strengthText.textContent = 'Mạnh'; }
+}
+
+// Kiểm tra mật khẩu mạnh (ít nhất các nhóm ký tự)
+function isStrongPassword(pwd){
+    return /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[\W_]/.test(pwd) && pwd.length >= 6;
+}
+
+// SHA-256 băm sang hex
+async function hashPwd(pwd){
+    const enc = new TextEncoder().encode(pwd);
+    const hashBuf = await crypto.subtle.digest('SHA-256', enc);
+    const hashArr = Array.from(new Uint8Array(hashBuf));
+    return hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Hàm đăng ký
+async function register(username, password){
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+    if(users[username]){
+        messageDiv.textContent = 'Tên đăng nhập đã tồn tại!';
+        messageDiv.className = 'error';
+        return false;
+    }
+    if(!isStrongPassword(password)){
+        messageDiv.textContent = 'Mật khẩu phải có chữ hoa, thường, số, ký tự đặc biệt và ≥6 ký tự!';
+        messageDiv.className = 'error';
+        return false;
+    }
+    const hashed = await hashPwd(password);
+    users[username] = { hash: hashed, created: Date.now() };
+    localStorage.setItem('users', JSON.stringify(users));
+    messageDiv.textContent = 'Đăng ký thành công! Vui lòng đăng nhập.';
+    messageDiv.className = 'success';
+    // chuyển sang login để người dùng đăng nhập
+    setTimeout(() => {
+        toggleForm.click();
+    }, 1000);
+    return true;
+}
+
+// Hàm đăng nhập
+async function login(username, password){
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+    if(users[username]){
+        const hashed = await hashPwd(password);
+        if(users[username].hash === hashed){
+            messageDiv.textContent = '';
+            messageDiv.className = '';
+            showWelcome(username);
+            return true;
+        }
+    }
+    messageDiv.textContent = 'Tên đăng nhập hoặc mật khẩu sai!';
+    messageDiv.className = 'error';
+    return false;
+}
+
+function showWelcome(username){
+    formArea.style.display = 'none';
+    welcomeArea.style.display = 'block';
+    welcomeText.textContent = `Chào mừng ${username}, bạn đã đăng nhập!`;
+}
+
+logoutBtn.addEventListener('click', () => {
+    welcomeArea.style.display = 'none';
+    formArea.style.display = 'block';
+    messageDiv.textContent = 'Bạn đã đăng xuất.';
+    messageDiv.className = 'success';
+    document.getElementById('username').value = '';
+    passwordInput.value = '';
+    if(confirmInput) confirmInput.value = '';
+    togglePassword.textContent = 'Hiện';
+    passwordInput.type = 'password';
+});
+
+// Cập nhật meter khi gõ mật khẩu (chỉ hiển thị khi đăng ký)
+passwordInput.addEventListener('input', (e) => {
+    if(!isLogin){
+        const pwd = e.target.value;
+        updateStrength(pwd);
+    }
+});
+
+// Xử lý nút
+submitBtn.addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const password = passwordInput.value;
+    if(!username || !password){
+        messageDiv.textContent = 'Vui lòng điền đủ thông tin!';
+        messageDiv.className = 'error';
+        return;
+    }
+    if(isLogin){
+        await login(username, password);
+    } else {
+        const confirm = confirmInput.value;
+        if(password !== confirm){
+            messageDiv.textContent = 'Mật khẩu xác nhận không khớp!';
+            messageDiv.className = 'error';
+            return;
+        }
+        await register(username, password);
+    }
+});
+    const options = {
+  method: 'GET',
+  headers: {accept: 'application/json', 'accept-encoding': 'deflate, gzip, br'}
+};
+
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Tự động focus vào ô nhập tên đăng nhập khi load
+    document.getElementById('username').focus();
+});
+</script>
+<script src="response.json"></script>
+
+</body>
+</html>
